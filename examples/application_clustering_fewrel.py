@@ -10,6 +10,7 @@ from sentence_transformers import SentenceTransformer
 from sklearn.cluster import AgglomerativeClustering
 from pathlib import Path
 from tqdm import tqdm
+from collections import Counter
 
 
 def blank_relation_example(d, tokenizer):
@@ -70,14 +71,13 @@ cluster_assignment = km.labels_
 
 
 clustered_sentences = [[] for i in range(num_clusters)]
-for sentence_id, cluster_id in enumerate(cluster_assignment):
+for sentence_id, cluster_id in enumerate(tqdm(cluster_assignment, desc="Clustering")):
     clustered_sentences[cluster_id].append(corpus[sentence_id])
 
 for i, cluster in enumerate(clustered_sentences):
-    print("Cluster ", i+1)
     cluster_labels = []
     for row in cluster:
         # print("(Gold label: {}) - {}".format(row[1], row[0]))
         cluster_labels.append(row[1])
-    print(cluster_labels)
+    print("Cluster ", i+1, repr(Counter(cluster_labels).most_common(10)))
     print("")
