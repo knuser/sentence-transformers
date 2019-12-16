@@ -7,10 +7,8 @@ same article come from the same section or from different sections in that artic
 import json
 
 from sentence_transformers import SentenceTransformer
-from sklearn.cluster import AgglomerativeClustering
 from pathlib import Path
 from tqdm import tqdm
-from collections import Counter
 
 
 def blank_relation_example(d, tokenizer):
@@ -34,7 +32,8 @@ source_file = Path.home() / "ml/questions_gen/data/fewrel_combined_train.json"
 assert source_file.is_file()
 
 
-embedder = SentenceTransformer('bert-base-wikipedia-sections-mean-tokens')
+# embedder = SentenceTransformer('bert-base-wikipedia-sections-mean-tokens')
+embedder = SentenceTransformer('bert-base-nli-mean-tokens')
 
 # extending tokens hack
 oryg_tokenizer_len = len(embedder._modules['0'].tokenizer)
@@ -62,22 +61,3 @@ num_clusters = len(set([row[1] for row in corpus]))
 print(f"Num of clusters: {num_clusters}")
 
 corpus_embeddings = embedder.encode(sentences, show_progress_bar=True)
-
-#Sklearn clustering
-km = AgglomerativeClustering(n_clusters=num_clusters)
-km.fit(corpus_embeddings)
-
-cluster_assignment = km.labels_
-
-
-clustered_sentences = [[] for i in range(num_clusters)]
-for sentence_id, cluster_id in enumerate(tqdm(cluster_assignment, desc="Clustering")):
-    clustered_sentences[cluster_id].append(corpus[sentence_id])
-
-for i, cluster in enumerate(clustered_sentences):
-    cluster_labels = []
-    for row in cluster:
-        # print("(Gold label: {}) - {}".format(row[1], row[0]))
-        cluster_labels.append(row[1])
-    print("Cluster ", i+1, repr(Counter(cluster_labels).most_common(10)))
-    print("")
